@@ -11,6 +11,10 @@ The ESP32 runs its own firmware and web UI and can also operate independently.
 | --- | --- |
 | ![Session menu](docs/screenshots/session.png) | ![Settings menu](docs/screenshots/settings.png) |
 
+**Connection map**
+
+![Connection map showing central, ESP32, and target links](docs/screenshots/connection-map.png)
+
 | Recording | Saved capture |
 | --- | --- |
 | ![Packet capture recording status](docs/screenshots/recording.png) | ![Saved packet capture status](docs/screenshots/saved-capture.png) |
