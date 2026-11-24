@@ -43,16 +43,16 @@ build against its matching SDK instead.
 Use the uFBT SDK that matches the firmware installed on your Flipper. From the repository root:
 
 ```sh
-uv tool run --from ufbt ufbt update --channel=release
-uv tool run --from ufbt ufbt
+uv tool run --from ufbt==0.2.6 ufbt update --channel=release
+uv tool run --from ufbt==0.2.6 ufbt
 ```
 
 For Unleashed, select its SDK before building:
 
 ```sh
-uv tool run --from ufbt ufbt update \
+uv tool run --from ufbt==0.2.6 ufbt update \
   --index-url=https://up.unleashedflip.com/directory.json --channel=release
-uv tool run --from ufbt ufbt
+uv tool run --from ufbt==0.2.6 ufbt
 ```
 
 Both commands produce `dist/gattacker.fap`. GitHub Actions builds both variants on pushes and
