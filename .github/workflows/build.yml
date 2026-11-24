@@ -1,0 +1,93 @@
+name: Build Flipper app
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build for ${{ matrix.firmware }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - firmware: official
+            sdk-index-url: https://update.flipperzero.one/firmware/directory.json
+          - firmware: unleashed
+            sdk-index-url: https://up.unleashedflip.com/directory.json
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Build app
+        env:
+          SDK_INDEX_URL: ${{ matrix.sdk-index-url }}
+        run: |
+          python -m pip install --upgrade ufbt
+          ufbt update --index-url="$SDK_INDEX_URL" --channel=release
+          ufbt -s
+      - name: Name binary
+        run: |
+          mkdir -p release
+          cp dist/gattacker.fap "release/ESP32-GATTacker-${{ matrix.firmware }}.fap"
+          test -s "release/ESP32-GATTacker-${{ matrix.firmware }}.fap"
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: ESP32-GATTacker-${{ matrix.firmware }}
+          path: release/ESP32-GATTacker-${{ matrix.firmware }}.fap
+          if-no-files-found: error
+
+  test:
+    name: Host tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install Wireshark CLI
+        run: |
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y tshark
+      - name: Run host tests
+        run: |
+          python3 -m unittest discover -s tests -v
+          cc -std=c17 -Iapp/core \
+            tests/core_test.c app/core/wire.c app/core/rules.c \
+            -o /tmp/gattacker-core
+          /tmp/gattacker-core
+
+  release:
+    name: Publish binaries
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build, test]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: ESP32-GATTacker-*
+          path: release
+          merge-multiple: true
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          test -s release/ESP32-GATTacker-official.fap
+          test -s release/ESP32-GATTacker-unleashed.fap
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" release/*.fap --clobber
+            gh release edit "$GITHUB_REF_NAME" --latest
+          else
+            gh release create "$GITHUB_REF_NAME" release/*.fap \
+              --verify-tag --generate-notes --latest
+          fi

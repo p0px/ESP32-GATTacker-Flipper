@@ -1,0 +1,12 @@
+.build/
+.local/
+.ruff_cache/
+.venv/
+.vscode/
+__pycache__/
+dist/
+*.fap
+*.pcap
+*.pcapng
+.env
+.env.*

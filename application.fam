@@ -1,0 +1,14 @@
+App(
+  appid="gattacker",
+  name="ESP32-GATTacker",
+  apptype=FlipperAppType.EXTERNAL,
+  entry_point="gattacker_main",
+  requires=["gui", "storage", "dialogs"],
+  stack_size=8192,
+  fap_category="GPIO",
+  fap_version=(0, 0, 1),
+  fap_icon="assets/gattacker.png",
+  fap_icon_assets="assets",
+  sources=["app/*.c", "app/capture/*.c", "app/core/*.c", "app/link/*.c",
+           "app/session/*.c", "app/ui/*.c", "app/wifi/*.c"],
+)
